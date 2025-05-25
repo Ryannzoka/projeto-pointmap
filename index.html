@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PointMap</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    />
+  </head>
+  <body>
+    <div class="wrapper">
+      <div class="topo">
+        <img
+          src="assets/img/logoPointMap.png"
+          alt="Logo PointMap"
+          class="logo"
+        />
+      </div>
+      <div class="map" id="map"></div>
+      <button class="btn-consultar">CONSULTAR CADASTROS</button>
+      <div class="modal" id="modalCadastro">
+        <div class="modal-content">
+          <h3>Cadastrar Ponto</h3>
+          <form id="formCadastro" class="form-cadastro">
+            <div class="form-group">
+              <label for="nome">Nome</label>
+              <input
+                type="text"
+                name="nome"
+                id="nome"
+                placeholder="Nome do local"
+                required
+              />
+            </div>
+            <div class="form-group">
+              <label for="descricao">Descrição</label>
+              <input
+                type="text"
+                name="descricao"
+                id="descricao"
+                placeholder="Descrição do local"
+                required
+              />
+            </div>
+            <div class="form-group">
+              <label for="latitude">Latitude</label>
+              <input type="text" name="latitude" id="latitude" readonly />
+            </div>
+            <div class="form-group">
+              <label for="longitude">Longitude</label>
+              <input type="text" name="longitude" id="longitude" readonly />
+            </div>
+            <div class="modal-buttons">
+              <button type="button" id="fecharModal">Cancelar</button>
+              <button type="submit">Salvar</button>
+            </div>
+          </form>
+        </div>
+      </div>
+      <div class="modal" id="modalConsulta">
+        <div class="modal-content">
+          <h3>Itens Cadastrados</h3>
+          <div id="listaItens" class="lista-itens"></div>
+          <button id="fecharModalConsulta">Fechar</button>
+        </div>
+      </div>
+      <div class="modal" id="modalDetalhes">
+        <div class="modal-content">
+          <h3>Detalhes do Ponto</h3>
+          <p id="detalhesTexto"></p>
+          <button id="fecharModalDetalhes">Fechar</button>
+        </div>
+      </div>
+
+      <div class="modal" id="modalMensagem">
+        <div class="modal-content">
+          <h3 id="modalMensagemTitulo"></h3>
+          <p id="modalMensagemTexto"></p>
+          <button id="fecharModalMensagem">OK</button>
+        </div>
+      </div>
+
+      <div class="modal" id="modalConfirmacao">
+        <div class="modal-content">
+          <h3 id="modalConfirmacaoTitulo">Confirmação</h3>
+          <p id="modalConfirmacaoTexto">Tem certeza que deseja continuar?</p>
+          <div class="modal-buttons">
+            <button id="btnCancelar" class="btn-cancelar">Cancelar</button>
+            <button id="btnConfirmar" class="btn-confirmar">Confirmar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script src="js/apikey.js"></script>
+    <script src="js/script.js"></script>
+    <link rel="stylesheet" href="css/style.css" />
+  </body>
+</html>
