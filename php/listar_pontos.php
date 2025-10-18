@@ -1,10 +1,9 @@
 <?php
 
-require 'db.php';
+require_once __DIR__ . '\config\database.php';
 
 $sql = "SELECT id, nome, descricao, latitude, longitude FROM pontos";
 $result = $conn->query($sql);
-
 $pontos = [];
 
 if ($result && $result->num_rows > 0) {

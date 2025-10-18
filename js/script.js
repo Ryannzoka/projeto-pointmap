@@ -5,48 +5,34 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 async function main() {
+  // MUDANÇA: Agora carrega do servidor PHP (chave protegida)
   await carregarGoogleMapsAPI();
   await initMap();
   configurarEventosUI();
 }
 
+/**
+ * Carrega o script do Google Maps de forma segura
+ * A API key agora vem do servidor PHP
+ */
 async function carregarGoogleMapsAPI() {
-  ((g) => {
-    const p = "The Google Maps JavaScript API",
-      c = "google",
-      l = "importLibrary",
-      q = "__ib__",
-      m = document,
-      b = window;
-
-    b[c] = b[c] || {};
-    const d = b[c].maps || (b[c].maps = {}),
-      r = new Set(),
-      e = new URLSearchParams(),
-      u = () =>
-        h ||
-        (h = new Promise(async (f, n) => {
-          const a = m.createElement("script");
-          e.set("libraries", [...r] + "");
-          for (const k in g)
-            e.set(
-              k.replace(/[A-Z]/g, (t) => "_" + t[0].toLowerCase()),
-              g[k]
-            );
-          e.set("callback", c + ".maps." + q);
-          a.src = `https://maps.${c}apis.com/maps/api/js?` + e;
-          d[q] = f;
-          a.onerror = () => (h = n(Error(p + " could not load.")));
-          a.nonce = m.querySelector("script[nonce]")?.nonce || "";
-          m.head.append(a);
-        }));
-    let h;
-    d[l]
-      ? console.warn(p + " only loads once. Ignoring:", g)
-      : (d[l] = (f, ...n) => r.add(f) && u().then(() => d[l](f, ...n)));
-  })({
-    key: GOOGLE_MAPS_API_KEY,
-    v: "weekly",
+  return new Promise((resolve, reject) => {
+    const script = document.createElement('script');
+    script.src = 'php/get_maps_script.php'; // ← MUDANÇA AQUI
+    script.async = true;
+    script.defer = true;
+    
+    script.onload = () => {
+      console.log('Google Maps API carregada com sucesso');
+      resolve();
+    };
+    
+    script.onerror = () => {
+      console.error('Erro ao carregar Google Maps API');
+      reject(new Error('Falha ao carregar Google Maps'));
+    };
+    
+    document.head.appendChild(script);
   });
 }
 
@@ -66,10 +52,15 @@ async function initMap() {
 
   try {
     const response = await fetch("php/listar_pontos.php");
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
     const pontos = await response.json();
     pontos.forEach(insertMarker);
   } catch (erro) {
     console.error("Erro ao carregar pontos do banco:", erro);
+    showModalMensagem("Erro", "Não foi possível carregar os pontos cadastrados.");
   }
 }
 
@@ -163,9 +154,9 @@ async function insertMarker(ponto) {
     const texto = `
       <div class="detalhes-grid">
         <div><i class="fas fa-map-marker-alt"></i> <strong>Nome:</strong></div>
-        <div>${ponto.nome}</div>
+        <div>${escapeHtml(ponto.nome)}</div>
         <div><i class="fas fa-sticky-note"></i> <strong>Descrição:</strong></div>
-        <div>${ponto.descricao}</div>
+        <div>${escapeHtml(ponto.descricao)}</div>
         <div><i class="fas fa-globe-americas"></i> <strong>Coordenadas:</strong></div>
         <div>${ponto.latitude}, ${ponto.longitude}</div>
       </div>
@@ -186,6 +177,20 @@ async function insertMarker(ponto) {
   marcadores.set(Number(ponto.id), marker);
 }
 
+/**
+ * Escapa HTML para prevenir XSS
+ */
+function escapeHtml(text) {
+  const map = {
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#039;'
+  };
+  return text.replace(/[&<>"']/g, m => map[m]);
+}
+
 async function abrirModalConsulta() {
   const modal = document.getElementById("modalConsulta");
   const lista = document.getElementById("listaItens");
@@ -193,10 +198,16 @@ async function abrirModalConsulta() {
 
   try {
     const res = await fetch("php/listar_pontos.php");
+    
+    if (!res.ok) {
+      throw new Error(`HTTP error! status: ${res.status}`);
+    }
+    
     const pontos = await res.json();
 
     if (pontos.length === 0) {
       lista.innerHTML = "<p>Nenhum ponto cadastrado.</p>";
+      abrirModal("modalConsulta");
       return;
     }
 
@@ -207,10 +218,10 @@ async function abrirModalConsulta() {
       item.className = "item-ponto";
       item.innerHTML = `
         <div class="item-info">
-          <strong>${ponto.nome}</strong>
+          <strong>${escapeHtml(ponto.nome)}</strong>
         </div>
         <div class="item-botoes">
-          <button class="btn-detalhes" title="Ver detalhes" data-nome="${ponto.nome}" data-desc="${ponto.descricao}" data-lat="${ponto.latitude}" data-lng="${ponto.longitude}">
+          <button class="btn-detalhes" title="Ver detalhes" data-nome="${escapeHtml(ponto.nome)}" data-desc="${escapeHtml(ponto.descricao)}" data-lat="${ponto.latitude}" data-lng="${ponto.longitude}">
             <i class="fas fa-info-circle"></i>
           </button>
           <button class="btn-ver" title="Ver no mapa" data-lat="${ponto.latitude}" data-lng="${ponto.longitude}">
@@ -249,7 +260,13 @@ async function abrirModalConsulta() {
                 },
                 body: `id=${encodeURIComponent(id)}`,
               });
+              
+              if (!res.ok) {
+                throw new Error(`HTTP error! status: ${res.status}`);
+              }
+              
               const result = await res.json();
+              
               if (result.status === "sucesso") {
                 showModalMensagem("Sucesso", "Ponto excluído com sucesso.");
                 btn.closest(".item-ponto").remove();
@@ -262,7 +279,7 @@ async function abrirModalConsulta() {
               } else {
                 showModalMensagem(
                   "Erro",
-                  "Erro ao excluir: " + result.mensagem
+                  "Erro ao excluir: " + escapeHtml(result.mensagem)
                 );
               }
             } catch (e) {
@@ -314,6 +331,11 @@ async function salvarCadastro(e) {
       method: "POST",
       body: formData,
     });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
     const resultado = await response.json();
 
     if (resultado.status === "sucesso") {
@@ -329,7 +351,7 @@ async function salvarCadastro(e) {
       fecharModal("modalCadastro");
       form.reset();
     } else {
-      showModalMensagem("Erro", "Erro ao cadastrar: " + resultado.mensagem);
+      showModalMensagem("Erro", "Erro ao cadastrar: " + escapeHtml(resultado.mensagem));
     }
   } catch (e) {
     console.error("Erro ao salvar cadastro:", e);

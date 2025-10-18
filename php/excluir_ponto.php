@@ -1,6 +1,6 @@
 <?php
 
-require 'db.php';
+require_once __DIR__ . '\config\database.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     parse_str(file_get_contents("php://input"), $_DELETE);

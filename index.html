@@ -1,13 +1,15 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>PointMap</title>
+    <title>PointMap - Cadastro de Pontos</title>
+    <meta name="description" content="Sistema de cadastro e visualização de pontos no mapa">
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
     />
+    <link rel="stylesheet" href="css/style.css" />
   </head>
   <body>
     <div class="wrapper">
@@ -20,27 +22,31 @@
       </div>
       <div class="map" id="map"></div>
       <button class="btn-consultar">CONSULTAR CADASTROS</button>
+      
+      <!-- Modal de Cadastro -->
       <div class="modal" id="modalCadastro">
         <div class="modal-content">
           <h3>Cadastrar Ponto</h3>
           <form id="formCadastro" class="form-cadastro">
             <div class="form-group">
-              <label for="nome">Nome</label>
+              <label for="nome">Nome *</label>
               <input
                 type="text"
                 name="nome"
                 id="nome"
                 placeholder="Nome do local"
+                maxlength="100"
                 required
               />
             </div>
             <div class="form-group">
-              <label for="descricao">Descrição</label>
+              <label for="descricao">Descrição *</label>
               <input
                 type="text"
                 name="descricao"
                 id="descricao"
                 placeholder="Descrição do local"
+                maxlength="255"
                 required
               />
             </div>
@@ -59,6 +65,8 @@
           </form>
         </div>
       </div>
+      
+      <!-- Modal de Consulta -->
       <div class="modal" id="modalConsulta">
         <div class="modal-content">
           <h3>Itens Cadastrados</h3>
@@ -66,6 +74,8 @@
           <button id="fecharModalConsulta">Fechar</button>
         </div>
       </div>
+      
+      <!-- Modal de Detalhes -->
       <div class="modal" id="modalDetalhes">
         <div class="modal-content">
           <h3>Detalhes do Ponto</h3>
@@ -74,6 +84,7 @@
         </div>
       </div>
 
+      <!-- Modal de Mensagem -->
       <div class="modal" id="modalMensagem">
         <div class="modal-content">
           <h3 id="modalMensagemTitulo"></h3>
@@ -82,6 +93,7 @@
         </div>
       </div>
 
+      <!-- Modal de Confirmação -->
       <div class="modal" id="modalConfirmacao">
         <div class="modal-content">
           <h3 id="modalConfirmacaoTitulo">Confirmação</h3>
@@ -93,8 +105,8 @@
         </div>
       </div>
     </div>
-    <script src="js/apikey.js"></script>
+    
+    <!-- MUDANÇA: Removido apikey.js, agora vem do PHP -->
     <script src="js/script.js"></script>
-    <link rel="stylesheet" href="css/style.css" />
   </body>
 </html>
