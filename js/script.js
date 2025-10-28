@@ -5,20 +5,15 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 async function main() {
-  // MUDANÇA: Agora carrega do servidor PHP (chave protegida)
   await carregarGoogleMapsAPI();
   await initMap();
   configurarEventosUI();
 }
 
-/**
- * Carrega o script do Google Maps de forma segura
- * A API key agora vem do servidor PHP
- */
 async function carregarGoogleMapsAPI() {
   return new Promise((resolve, reject) => {
     const script = document.createElement('script');
-    script.src = 'php/get_maps_script.php'; // ← MUDANÇA AQUI
+    script.src = 'php/get_maps_script.php';
     script.async = true;
     script.defer = true;
     
@@ -52,6 +47,7 @@ async function initMap() {
 
   try {
     const response = await fetch("php/listar_pontos.php");
+    
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
@@ -154,9 +150,9 @@ async function insertMarker(ponto) {
     const texto = `
       <div class="detalhes-grid">
         <div><i class="fas fa-map-marker-alt"></i> <strong>Nome:</strong></div>
-        <div>${escapeHtml(ponto.nome)}</div>
+        <div>${ponto.nome}</div>
         <div><i class="fas fa-sticky-note"></i> <strong>Descrição:</strong></div>
-        <div>${escapeHtml(ponto.descricao)}</div>
+        <div>${ponto.descricao}</div>
         <div><i class="fas fa-globe-americas"></i> <strong>Coordenadas:</strong></div>
         <div>${ponto.latitude}, ${ponto.longitude}</div>
       </div>
@@ -177,9 +173,7 @@ async function insertMarker(ponto) {
   marcadores.set(Number(ponto.id), marker);
 }
 
-/**
- * Escapa HTML para prevenir XSS
- */
+//função de escapar HTML para previnir XSS
 function escapeHtml(text) {
   const map = {
     '&': '&amp;',
@@ -332,14 +326,11 @@ async function salvarCadastro(e) {
       body: formData,
     });
     
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    
     const resultado = await response.json();
 
     if (resultado.status === "sucesso") {
-      const ponto = {
+      // Usa dados retornados do backend já sanitizados
+      const ponto = resultado.ponto || {
         id: resultado.id,
         nome: formData.get("nome"),
         descricao: formData.get("descricao"),
@@ -347,11 +338,12 @@ async function salvarCadastro(e) {
         longitude: formData.get("longitude"),
       };
       await insertMarker(ponto);
-      showModalMensagem("Sucesso", "Ponto cadastrado com sucesso!");
+      showModalMensagem("Sucesso", resultado.mensagem || "Ponto cadastrado com sucesso!");
       fecharModal("modalCadastro");
       form.reset();
     } else {
-      showModalMensagem("Erro", "Erro ao cadastrar: " + escapeHtml(resultado.mensagem));
+      // Melhor tratamento de erros com mensagens iguais do backend
+      showModalMensagem("Erro", resultado.mensagem || "Erro ao cadastrar ponto.");
     }
   } catch (e) {
     console.error("Erro ao salvar cadastro:", e);
